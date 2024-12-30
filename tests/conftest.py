@@ -1,3 +1,6 @@
+import os
+from datetime import datetime
+
 import pytest
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -7,27 +10,49 @@ from utils.logger import Logger
 
 @pytest.fixture(scope="function")
 def driver(request):
+    """Фікстура для налаштування WebDriver"""
     options = webdriver.ChromeOptions()
     options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     driver.maximize_window()
 
-    test_name = request.node.name
-    logger, report_dir = Logger.setup_logger(test_name)
-    driver._test_report_dir = report_dir
+    # Отримуємо ім'я тестового файлу та тесту
+    test_file_name = os.path.basename(request.node.fspath)  # Ім'я тестового файлу
+    test_name = request.node.name  # Назва тесту
+    timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
-    logger.info(f"Starting test: {request.node.nodeid}")
+    # Налаштування логування
+    logger, test_dir = Logger.setup_logger(test_file_name, test_name)
+
+    # Зберігаємо інформацію для збереження скріншотів
+    driver._test_dir = test_dir
+    driver._test_name = test_name
+    driver._timestamp = timestamp
+
+    Logger.log_info(f"Starting test: {request.node.nodeid}")
 
     yield driver
 
-    logger.info(f"Test {request.node.nodeid} finished")
+    Logger.log_info(f"Test {request.node.nodeid} finished")
     driver.quit()
 
 
+def pytest_sessionstart(session):
+    """Ініціалізуємо директорії для тестових файлів перед запуском"""
+    for item in session.items:
+        test_file_name = os.path.basename(item.fspath)
+        Logger.setup_test_file_dir(test_file_name)
+
+
+
 def pytest_runtest_makereport(item, call):
-    if call.excinfo is not None:
-        test_name = item.nodeid.split("::")[-1]
-        report_dir = item.funcargs['driver']._test_report_dir
-        Logger.save_screenshot(item.funcargs['driver'], report_dir, test_name)
+    """Обробка помилок і збереження скріншотів у разі неуспіху"""
+    if call.excinfo is not None:  # Якщо є помилка в тесті
+        driver = item.funcargs['driver']
+        test_dir = driver._test_dir
+        test_name = driver._test_name
+        timestamp = driver._timestamp
+
+        Logger.save_screenshot(driver, test_dir, test_name, timestamp)
         Logger.log_info(f"Test {item.nodeid} failed with {call.excinfo}")
