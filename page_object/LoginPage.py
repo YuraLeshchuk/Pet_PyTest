@@ -13,7 +13,7 @@ class LoginPage:
         self.driver = driver
 
     def verify_page_title(self):
-        title = WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.XPATH,  self.__page_title_xpath)))
+        title = WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.XPATH, self.__page_title_xpath)))
         title_text = title.text
         assert title_text == "Login"
 

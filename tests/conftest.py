@@ -6,6 +6,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from utils.logger import Logger
+from utils import read_config
 
 
 @pytest.fixture(scope="function")
@@ -16,6 +17,8 @@ def driver(request):
     options.add_argument("--no-sandbox")
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     driver.maximize_window()
+
+    driver.base_url = read_config.get_url()
 
     # Отримуємо ім'я тестового файлу та тесту
     test_file_name = os.path.basename(request.node.fspath)  # Ім'я тестового файлу
