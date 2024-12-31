@@ -11,7 +11,8 @@ class Logger:
         """Створення папки для тестового файлу (один раз)"""
         if Logger.test_file_dir is None:
             timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-            Logger.test_file_dir = os.path.join(os.path.abspath(os.path.join(os.getcwd(), "reports")), f"{test_file_name}_{timestamp}")
+            Logger.test_file_dir = os.path.join(os.path.abspath(os.path.join(os.getcwd(), "reports")),
+                                                f"{test_file_name}_{timestamp}")
             if not os.path.exists(Logger.test_file_dir):
                 os.makedirs(Logger.test_file_dir)
         return Logger.test_file_dir
@@ -51,6 +52,17 @@ class Logger:
     def log_error(message):
         """Логування помилок"""
         logging.error(message)
+
+    @staticmethod
+    def step(step_number: str, description):
+        msg = "STEP " + step_number + " : " + description + " "
+        while len(msg) < 55:
+            msg += "*"
+        try:
+            logging.info(msg)
+        except Exception:
+            logging.exception("Log step failed")
+        pass
 
     @staticmethod
     def save_screenshot(driver, test_dir, test_name, timestamp):

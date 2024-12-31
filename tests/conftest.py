@@ -25,7 +25,6 @@ def driver(request):
     test_name = request.node.name  # Назва тесту
     timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
-
     # Налаштування логування
     logger, test_dir = Logger.setup_logger(test_file_name, test_name)
 
@@ -40,15 +39,6 @@ def driver(request):
 
     Logger.log_info(f"Test {request.node.nodeid} finished")
     driver.quit()
-
-
-def pytest_sessionstart(session):
-    # Логіка, яка не потребує доступу до session.items
-    print("Session started")
-
-def pytest_collection_modifyitems(session, config, items):
-    # Логіка, яка працює з items
-    print(f"Collected {len(items)} tests")
 
 
 def pytest_runtest_makereport(item, call):
