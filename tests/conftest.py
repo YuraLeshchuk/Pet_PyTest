@@ -42,11 +42,12 @@ def driver(request):
 
 
 def pytest_sessionstart(session):
-    """Ініціалізуємо директорії для тестових файлів перед запуском"""
-    for item in session.items:
-        test_file_name = os.path.basename(item.fspath)
-        Logger.setup_test_file_dir(test_file_name)
+    # Логіка, яка не потребує доступу до session.items
+    print("Session started")
 
+def pytest_collection_modifyitems(session, config, items):
+    # Логіка, яка працює з items
+    print(f"Collected {len(items)} tests")
 
 
 def pytest_runtest_makereport(item, call):
