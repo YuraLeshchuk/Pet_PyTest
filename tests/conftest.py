@@ -25,6 +25,7 @@ def driver(request):
     test_name = request.node.name  # Назва тесту
     timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
+
     # Налаштування логування
     logger, test_dir = Logger.setup_logger(test_file_name, test_name)
 

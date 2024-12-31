@@ -11,7 +11,7 @@ class Logger:
         """Створення папки для тестового файлу (один раз)"""
         if Logger.test_file_dir is None:
             timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-            Logger.test_file_dir = os.path.join("../reports", f"{test_file_name}_{timestamp}")
+            Logger.test_file_dir = os.path.join(os.path.abspath(os.path.join(os.getcwd(), "reports")), f"{test_file_name}_{timestamp}")
             if not os.path.exists(Logger.test_file_dir):
                 os.makedirs(Logger.test_file_dir)
         return Logger.test_file_dir
