@@ -1,0 +1,4 @@
+2024-12-31 14:33:45,315 - INFO - Starting test: test_login.py::test_2
+2024-12-31 14:33:45,549 - INFO - Screenshot_path: ../reports\test_login.py_2024-12-31_14-33-32\test_2_2024-12-31_14-33-45\test_2_2024-12-31_14-33-45.png
+2024-12-31 14:33:45,549 - INFO - Test test_login.py::test_2 failed with <ExceptionInfo AssertionError('assert 1 == 4') tblen=27>
+2024-12-31 14:33:45,702 - INFO - Test test_login.py::test_2 finished
