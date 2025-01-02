@@ -1,6 +1,7 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from utils.logger import Logger
 
 
 class LoginPage:
@@ -15,6 +16,7 @@ class LoginPage:
     def verify_page_title(self):
         title = WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.XPATH, self.__page_title_xpath)))
         title_text = title.text
+        Logger.checkpoint("assertion")
         assert title_text == "Login"
 
     def click_login_btn(self):

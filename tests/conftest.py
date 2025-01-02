@@ -9,45 +9,69 @@ from utils.logger import Logger
 from utils import read_config
 
 
+
 @pytest.fixture(scope="function")
 def driver(request):
-    """Фікстура для налаштування WebDriver"""
+    """
+    Фікстура для налаштування WebDriver.
+    """
+    # Налаштування WebDriver
     options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
+    if read_config.driver_mode() == "true":
+        options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     driver.maximize_window()
-
     driver.base_url = read_config.get_url()
 
-    # Отримуємо ім'я тестового файлу та тесту
-    test_file_name = os.path.basename(request.node.fspath)  # Ім'я тестового файлу
+    # Отримання інформації про тестовий файл і тест
+    test_file_name = os.path.basename(request.node.fspath).split('.')[0]  # Ім'я тестового файлу без розширення
     test_name = request.node.name  # Назва тесту
-    timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    timestamp = request.config._timestamp  # Використовуємо загальний timestamp для всіх тестів
 
-    # Налаштування логування
-    logger, test_dir = Logger.setup_logger(test_file_name, test_name)
+    # Створення загальної папки для логів тестового файлу
+    logs_dir = os.path.join("reports", f"{test_file_name}_{timestamp}")
+    os.makedirs(logs_dir, exist_ok=True)
 
-    # Зберігаємо інформацію для збереження скріншотів
-    driver._test_dir = test_dir
+    # Налаштування логера
+    logger = Logger.setup_logger(test_name, logs_dir)
+
+    # Зберігання інформації в driver
+    driver._logger = logger
+    driver._test_dir = logs_dir
     driver._test_name = test_name
-    driver._timestamp = timestamp
 
-    Logger.log_info(f"Starting test: {request.node.nodeid}")
+    logger.info(f"Starting test: {request.node.nodeid}")
 
-    yield driver
+    try:
+        yield driver
+    finally:
+        logger.info(f"Finishing test: {request.node.nodeid}")
+        driver.quit()
 
-    Logger.log_info(f"Test {request.node.nodeid} finished")
-    driver.quit()
+        # Закриття всіх хендлерів логера
+        for handler in logger.handlers[:]:
+            handler.close()
+            logger.removeHandler(handler)
+
+
+def pytest_sessionstart(session):
+    """
+    Ініціалізує timestamp для всього тестового запуску.
+    """
+    session.config._timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
 
 def pytest_runtest_makereport(item, call):
-    """Обробка помилок і збереження скріншотів у разі неуспіху"""
-    if call.excinfo is not None:  # Якщо є помилка в тесті
-        driver = item.funcargs['driver']
-        test_dir = driver._test_dir
-        test_name = driver._test_name
-        timestamp = driver._timestamp
+    """
+    Обробка результатів тесту та збереження скріншотів у разі помилок.
+    """
+    if call.when == "call" and call.excinfo is not None:  # Виконання тесту завершилося помилкою
+        driver = item.funcargs.get("driver", None)
+        if driver:
+            test_dir = driver._test_dir
+            test_name = driver._test_name
 
-        Logger.save_screenshot(driver, test_dir, test_name, timestamp)
-        Logger.log_info(f"Test {item.nodeid} failed with {call.excinfo}")
+            # Збереження скріншота та логування
+            Logger.save_screenshot(driver, test_dir, test_name)
+            driver._logger.error(f"Test {item.nodeid} failed with: {call.excinfo}")

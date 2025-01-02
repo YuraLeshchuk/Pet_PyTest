@@ -1,74 +1,93 @@
 import logging
 import os
 from datetime import datetime
+from utils import globals
+
+timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
 
 class Logger:
-    test_file_dir = None  # Змінна для директорії тестового файлу
+    """
+    Клас для управління логуванням і збереженням скріншотів для тестів.
+    """
 
     @staticmethod
-    def setup_test_file_dir(test_file_name):
-        """Створення папки для тестового файлу (один раз)"""
-        if Logger.test_file_dir is None:
-            timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-            Logger.test_file_dir = os.path.join(os.path.abspath(os.path.join(os.getcwd(), "reports")),
-                                                f"{test_file_name}_{timestamp}")
-            if not os.path.exists(Logger.test_file_dir):
-                os.makedirs(Logger.test_file_dir)
-        return Logger.test_file_dir
+    def setup_logger(test_name: str, logs_dir: str) -> logging.Logger:
+        """
+        Налаштовує окремий логер для кожного тесту.
 
-    @staticmethod
-    def setup_logger(test_file_name, test_name):
-        """Створення папки для конкретного тесту"""
-        timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        :param test_name: Назва тесту (ім'я функції тесту).
+        :param logs_dir: Директорія, де зберігатимуться лог-файли.
+        :return: Логер, налаштований для конкретного тесту.
+        """
+        os.makedirs(logs_dir, exist_ok=True)
 
-        # Папка для тестового файлу
-        test_file_dir = Logger.setup_test_file_dir(test_file_name)
+        log_file = os.path.join(logs_dir, f"{test_name}_{timestamp}.log")
 
-        # Папка для конкретного тесту
-        test_dir = os.path.join(test_file_dir, f"{test_name}_{timestamp}")
-        if not os.path.exists(test_dir):
-            os.makedirs(test_dir)
+        logger = logging.getLogger(test_name)
+        logger.setLevel(logging.DEBUG)
 
-        # Файл логів для конкретного тесту
-        log_filename = os.path.join(test_dir, f"{test_name}_{timestamp}.log")
+        # Видалення старих хендлерів
+        if logger.handlers:
+            for handler in logger.handlers:
+                logger.removeHandler(handler)
 
-        logger = logging.getLogger()
-        logger.setLevel(logging.INFO)
-
-        # Додаємо FileHandler
-        file_handler = logging.FileHandler(log_filename)
-        file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+        # Додавання FileHandler
+        file_handler = logging.FileHandler(log_file, mode="w", encoding="utf-8")
+        file_handler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
 
-        return logger, test_dir  # Повертаємо logger і директорію для тесту
+        return logger
+
 
     @staticmethod
-    def log_info(message):
-        """Логування інформаційних повідомлень"""
-        logging.info(message)
-
-    @staticmethod
-    def log_error(message):
-        """Логування помилок"""
-        logging.error(message)
-
-    @staticmethod
-    def step(step_number: str, description):
-        msg = "STEP " + step_number + " : " + description + " "
+    def step(step_number: str, description: str):
+        """
+        Логування кроків тесту у форматі 'STEP X: description'.
+        """
+        msg = f"STEP {step_number} : {description} "
         while len(msg) < 55:
             msg += "*"
         try:
             logging.info(msg)
         except Exception:
             logging.exception("Log step failed")
-        pass
 
     @staticmethod
-    def save_screenshot(driver, test_dir, test_name, timestamp):
-        """Зберігає скріншот у папці конкретного тесту"""
+    def checkpoint(message: str):
+        """
+        Логування кроків тесту у форматі 'STEP X: description'.
+        """
+
+        logging.info(f" CHECKPOINT: {message}")
+        globals.list_checkpoints.append(message)
+    @staticmethod
+    def test_summary():
+        logging.info("*************************************************")
+        logging.info("****************** TEST SUMMARY *****************")
+        logging.info("*************************************************")
+        logging.info(" CHECKPOINTS: " + str(len(globals.list_checkpoints)))
+        # logging.info(" WARNINGS: " + globals.int_total_warnings)
+        # logging.info(" ERRORS: " + globals.int_total_errors)
+        # logging.info(" EXCEPTIONS: " + globals.int_total_exceptions)
+
+    @staticmethod
+    def save_screenshot(driver, test_dir: str, test_name: str):
+        """
+        Зберігає скріншот у папці конкретного тесту.
+
+        :param driver: WebDriver, який використовується у тесті.
+        :param test_dir: Директорія для збереження скріншота.
+        :param test_name: Назва тесту.
+        :param timestamp: Час створення скріншота.
+        """
         screenshot_name = f"{test_name}_{timestamp}.png"
         screenshot_path = os.path.join(test_dir, screenshot_name)
 
-        driver.save_screenshot(screenshot_path)
-        logging.info(f"Screenshot_path: {screenshot_path}")
+        try:
+            driver.save_screenshot(screenshot_path)
+            logging.info(f"Screenshot saved at: {screenshot_path}")
+        except Exception as e:
+            logging.error(f"Failed to save screenshot: {e}")

@@ -3,6 +3,7 @@ from utils.logger import Logger
 
 def test_1(driver):
     Logger.step("01", "test_1")
+
     driver.get(driver.base_url)
     login_page = LoginPage(driver)
     login_page.verify_page_title()
