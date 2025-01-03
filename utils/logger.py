@@ -38,6 +38,12 @@ class Logger:
         return _global_logger
 
     @staticmethod
+    def save_screenshot(driver, test_file_dir, screenshot_name):
+        screenshot_path = os.path.join(test_file_dir, screenshot_name)
+        driver.save_screenshot(screenshot_path)
+        _global_logger.info(f"Screenshot saved at: {screenshot_path}")
+
+    @staticmethod
     def step(step_number: str, description: str):
         """
         Логування кроку тесту у форматі:
@@ -50,10 +56,28 @@ class Logger:
             raise ValueError("Logger is not initialized.")
 
     @staticmethod
-    def save_screenshot(driver, test_file_dir, screenshot_name):
-        screenshot_path = os.path.join(test_file_dir, screenshot_name)
-        driver.save_screenshot(screenshot_path)
-        _global_logger.info(f"Screenshot saved at: {screenshot_path}")
+    def checkpoint(msg):
+        """
+
+        """
+        if _global_logger:
+            globals.int_total_checkpoints +=1
+            msg = f"CHECKPOINT {str(globals.int_total_checkpoints)}: {msg}"
+            _global_logger.info(msg)
+        else:
+            raise ValueError("Logger is not initialized.")
+
+    @staticmethod
+    def error(msg, error_class, **kwargs):
+        """
+
+        """
+        if _global_logger:
+            _global_logger.error(msg)
+            globals.list_warnings.append(msg)
+            raise error_class
+        else:
+            raise ValueError("Logger is not initialized.")
 
     @staticmethod
     def log_test_summary():
@@ -64,13 +88,5 @@ class Logger:
         _global_logger.info("**************** TEST SCENARIO SUMMARY ****************")
         _global_logger.info("*******************************************************")
         _global_logger.info("    TOTAL CHECKPOINTS: " + str(len(globals.list_checkpoints)))
-
         _global_logger.info("    TOTAL WARNINGS: " + str(len(globals.list_warnings)))
-        if len(globals.list_warnings):
-            for error in globals.list_warnings:
-                _global_logger.info(error)
-
         _global_logger.info("    TOTAL EXCEPTIONS: " + str(len(globals.list_exceptions)))
-        if len(globals.list_exceptions):
-            for error in globals.list_exceptions:
-                _global_logger.info(error)

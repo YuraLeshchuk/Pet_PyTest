@@ -60,8 +60,6 @@ def pytest_runtest_makereport(item, call):
             logger = Logger.get_global_logger()
             driver = item.funcargs['driver']
 
-            globals.list_exceptions.append([call.excinfo.type, call.excinfo.value])
-
             test_file_name = os.path.splitext(os.path.basename(item.fspath))[0]  # Ім'я тестового файлу
             test_name = item.name  # Назва тесту
             timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
