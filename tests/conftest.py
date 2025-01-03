@@ -6,6 +6,7 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from utils.logger import Logger, initialize_logger
 from utils import read_config
+from utils import globals
 
 # Створення загальної папки для запуску тестів
 RUN_TIMESTAMP = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
@@ -58,6 +59,8 @@ def pytest_runtest_makereport(item, call):
         if 'driver' in item.funcargs:
             logger = Logger.get_global_logger()
             driver = item.funcargs['driver']
+
+            globals.list_exceptions.append([call.excinfo.type, call.excinfo.value])
 
             test_file_name = os.path.splitext(os.path.basename(item.fspath))[0]  # Ім'я тестового файлу
             test_name = item.name  # Назва тесту

@@ -64,6 +64,13 @@ class Logger:
         _global_logger.info("**************** TEST SCENARIO SUMMARY ****************")
         _global_logger.info("*******************************************************")
         _global_logger.info("    TOTAL CHECKPOINTS: " + str(len(globals.list_checkpoints)))
+
         _global_logger.info("    TOTAL WARNINGS: " + str(len(globals.list_warnings)))
-        _global_logger.info("    TOTAL ERRORS: " + str(len(globals.list_errors)))
+        if len(globals.list_warnings):
+            for error in globals.list_warnings:
+                _global_logger.info(error)
+
         _global_logger.info("    TOTAL EXCEPTIONS: " + str(len(globals.list_exceptions)))
+        if len(globals.list_exceptions):
+            for error in globals.list_exceptions:
+                _global_logger.info(error)
