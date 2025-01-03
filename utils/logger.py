@@ -11,8 +11,8 @@ def initialize_logger(log_file_name: str, test_file_dir: str):
     if not os.path.exists(test_file_dir):
         os.makedirs(test_file_dir)
 
-    _global_logger = logging.getLogger("GlobalLogger")
-    _global_logger.setLevel(logging.DEBUG)
+    _global_logger = logging.getLogger("LOGGER")
+    _global_logger.setLevel(logging.INFO)
 
     # Видаляємо старі хендлери
     if _global_logger.handlers:
@@ -31,7 +31,7 @@ class Logger:
     @staticmethod
     def get_global_logger() -> logging.Logger:
         if _global_logger is None:
-            raise ValueError("Global Logger is not initialized.")
+            raise ValueError("Logger is not initialized.")
         return _global_logger
 
     @staticmethod
@@ -44,7 +44,7 @@ class Logger:
             msg = f"STEP {step_number}: {description}"
             _global_logger.info(msg)
         else:
-            raise ValueError("Global Logger is not initialized.")
+            raise ValueError("Logger is not initialized.")
 
     @staticmethod
     def save_screenshot(driver, test_file_dir, screenshot_name):
