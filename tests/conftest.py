@@ -14,6 +14,7 @@ TEST_RUN_DIR = os.path.join("reports", f"test_run_{RUN_TIMESTAMP}")
 if not os.path.exists(TEST_RUN_DIR):
     os.makedirs(TEST_RUN_DIR)
 
+
 @pytest.fixture(scope="function")
 def driver(request):
     """Фікстура для налаштування WebDriver"""
@@ -47,7 +48,9 @@ def driver(request):
 
     # Логування завершення тесту
     logger.info(f"Test {request.node.nodeid} finished")
+    Logger.log_test_summary()
     driver.quit()
+
 
 def pytest_runtest_makereport(item, call):
     """Обробка помилок і збереження скріншотів у разі неуспіху"""

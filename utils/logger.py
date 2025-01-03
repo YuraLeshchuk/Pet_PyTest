@@ -1,7 +1,9 @@
 import logging
 import os
+from utils import globals
 
 _global_logger = None
+
 
 def initialize_logger(log_file_name: str, test_file_dir: str):
     """
@@ -27,6 +29,7 @@ def initialize_logger(log_file_name: str, test_file_dir: str):
     file_handler.setFormatter(formatter)
     _global_logger.addHandler(file_handler)
 
+
 class Logger:
     @staticmethod
     def get_global_logger() -> logging.Logger:
@@ -51,3 +54,16 @@ class Logger:
         screenshot_path = os.path.join(test_file_dir, screenshot_name)
         driver.save_screenshot(screenshot_path)
         _global_logger.info(f"Screenshot saved at: {screenshot_path}")
+
+    @staticmethod
+    def log_test_summary():
+        """
+
+        """
+        _global_logger.info("*******************************************************")
+        _global_logger.info("**************** TEST SCENARIO SUMMARY ****************")
+        _global_logger.info("*******************************************************")
+        _global_logger.info("    TOTAL CHECKPOINTS: " + str(len(globals.list_checkpoints)))
+        _global_logger.info("    TOTAL WARNINGS: " + str(len(globals.list_warnings)))
+        _global_logger.info("    TOTAL ERRORS: " + str(len(globals.list_errors)))
+        _global_logger.info("    TOTAL EXCEPTIONS: " + str(len(globals.list_exceptions)))
