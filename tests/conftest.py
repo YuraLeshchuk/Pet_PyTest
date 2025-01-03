@@ -1,77 +1,69 @@
 import os
 from datetime import datetime
-
 import pytest
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-from utils.logger import Logger
+from utils.logger import Logger, initialize_logger
 from utils import read_config
 
+# Створення загальної папки для запуску тестів
+RUN_TIMESTAMP = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+TEST_RUN_DIR = os.path.join("reports", f"test_run_{RUN_TIMESTAMP}")
 
+if not os.path.exists(TEST_RUN_DIR):
+    os.makedirs(TEST_RUN_DIR)
 
 @pytest.fixture(scope="function")
 def driver(request):
-    """
-    Фікстура для налаштування WebDriver.
-    """
-    # Налаштування WebDriver
+    """Фікстура для налаштування WebDriver"""
     options = webdriver.ChromeOptions()
-    if read_config.driver_mode() == "true":
-        options.add_argument("--headless")
+    options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     driver.maximize_window()
+
     driver.base_url = read_config.get_url()
 
-    # Отримання інформації про тестовий файл і тест
-    test_file_name = os.path.basename(request.node.fspath).split('.')[0]  # Ім'я тестового файлу без розширення
+    # Отримуємо ім'я тестового файлу
+    test_file_name = os.path.splitext(os.path.basename(request.node.fspath))[0]  # Ім'я без розширення
     test_name = request.node.name  # Назва тесту
-    timestamp = request.config._timestamp  # Використовуємо загальний timestamp для всіх тестів
+    timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
-    # Створення загальної папки для логів тестового файлу
-    logs_dir = os.path.join("reports", f"{test_file_name}_{timestamp}")
-    os.makedirs(logs_dir, exist_ok=True)
+    # Створюємо папку для тестового файлу всередині test_run
+    test_file_dir = os.path.join(TEST_RUN_DIR, f"{test_file_name}_{RUN_TIMESTAMP}")
+    if not os.path.exists(test_file_dir):
+        os.makedirs(test_file_dir)
 
-    # Налаштування логера
-    logger = Logger.setup_logger(test_name, logs_dir)
+    # Ініціалізація глобального логера
+    log_file_name = f"{test_name}_{timestamp}.log"  # Лог-файл для конкретного тесту
+    initialize_logger(log_file_name, test_file_dir)
 
-    # Зберігання інформації в driver
-    driver._logger = logger
-    driver._test_dir = logs_dir
-    driver._test_name = test_name
-
+    # Логування початку тесту
+    logger = Logger.get_global_logger()
     logger.info(f"Starting test: {request.node.nodeid}")
 
-    try:
-        yield driver
-    finally:
-        logger.info(f"Finishing test: {request.node.nodeid}")
-        driver.quit()
+    yield driver
 
-        # Закриття всіх хендлерів логера
-        for handler in logger.handlers[:]:
-            handler.close()
-            logger.removeHandler(handler)
-
-
-def pytest_sessionstart(session):
-    """
-    Ініціалізує timestamp для всього тестового запуску.
-    """
-    session.config._timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-
+    # Логування завершення тесту
+    logger.info(f"Test {request.node.nodeid} finished")
+    driver.quit()
 
 def pytest_runtest_makereport(item, call):
-    """
-    Обробка результатів тесту та збереження скріншотів у разі помилок.
-    """
-    if call.when == "call" and call.excinfo is not None:  # Виконання тесту завершилося помилкою
-        driver = item.funcargs.get("driver", None)
-        if driver:
-            test_dir = driver._test_dir
-            test_name = driver._test_name
+    """Обробка помилок і збереження скріншотів у разі неуспіху"""
+    if call.excinfo is not None:  # Якщо є помилка в тесті
+        if 'driver' in item.funcargs:
+            logger = Logger.get_global_logger()
+            driver = item.funcargs['driver']
 
-            # Збереження скріншота та логування
-            Logger.save_screenshot(driver, test_dir, test_name)
-            driver._logger.error(f"Test {item.nodeid} failed with: {call.excinfo}")
+            test_file_name = os.path.splitext(os.path.basename(item.fspath))[0]  # Ім'я тестового файлу
+            test_name = item.name  # Назва тесту
+            timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
+            # Директорія для скріншотів
+            test_file_dir = os.path.join(TEST_RUN_DIR, f"{test_file_name}_{RUN_TIMESTAMP}")
+            screenshot_name = f"{test_name}_{timestamp}.png"
+
+            # Збереження скріншоту
+            Logger.save_screenshot(driver, test_file_dir, screenshot_name)
+            logger.error(f"Test {item.nodeid} failed with {call.excinfo}")
