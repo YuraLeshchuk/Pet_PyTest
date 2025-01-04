@@ -7,6 +7,8 @@ def test_1(driver):
     login_page = LoginPage(driver)
     login_page.load()
     login_page.verify_page_title()
+    verify.element_exists(login_page.driver, login_page.page_title_xpath)
+    verify.verify_string("d", "ewfwe")
 
 def test_2(driver):
     Logger.step("2", "fdgre")

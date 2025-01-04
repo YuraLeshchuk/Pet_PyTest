@@ -80,6 +80,14 @@ class Logger:
             raise ValueError("Logger is not initialized.")
 
     @staticmethod
+    def exception(msg):
+        if _global_logger:
+            _global_logger.exception(msg)
+            globals.list_exceptions.append(msg)
+        else:
+            raise ValueError("Logger is not initialized.")
+
+    @staticmethod
     def log_test_summary():
         """
 

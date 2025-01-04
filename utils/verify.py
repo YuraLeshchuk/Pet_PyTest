@@ -3,6 +3,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from utils.logger import Logger
+from page_object.general_methods.browse_page import BrowsePage
 
 
 def element_exists(driver, locator: tuple[str, str], **kwargs):
@@ -16,24 +17,20 @@ def element_exists(driver, locator: tuple[str, str], **kwargs):
         fail_msg = f'Element {str(element_name)} is NOT present'
 
     try:
-        WebDriverWait(driver, timeout).until(EC.presence_of_element_located(locator))
+        BrowsePage(driver).get_element(locator, timeout=timeout)
         Logger.checkpoint(pass_msg)
         return True
     except Exception as e:
         Logger.error(f'{e.__class__.__name__}: {fail_msg}', TimeoutError)
 
 
-def verify_string(driver, expected_str: str, **kwargs):
-    timeout = kwargs.get('timeout', 5)
+def verify_string(actual_str: str, expected_str: str, **kwargs):
+    pass_msg = f'Actual string: {str(actual_str)} is equal to expected: {str(expected_str)}'
+    fail_msg = f'Actual string: {str(actual_str)} is NOT equal to expected: {str(expected_str)}'
 
-    # pass_msg = f'T {str(element_name)} is present'
-    # fail_msg = f'Element {str(element_name)} is NOT present'
-
-    # try:
-    #     element = WebDriverWait(driver, timeout).until(EC.presence_of_element_located(locator))
-    #     text = element.text
-    #     assert text == expected_text
-    #     Logger.checkpoint(pass_msg)
-    #     return True
-    # except Exception as e:
-    #     Logger.error(f'{e.__class__.__name__}: {fail_msg}', TimeoutError)
+    try:
+        assert actual_str == expected_str
+        Logger.checkpoint(pass_msg)
+        return True
+    except Exception as e:
+        Logger.exception(f'{e.__class__.__name__}: {fail_msg}')
