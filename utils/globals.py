@@ -6,3 +6,6 @@ int_total_warnings = 0
 list_warnings = []
 list_exceptions = []
 list_checkpoints = []
+
+test_name = " "
+test_file_dir = " "

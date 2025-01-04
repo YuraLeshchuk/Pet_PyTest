@@ -1,5 +1,6 @@
 import logging
 import os
+from datetime import datetime
 from utils import globals
 
 _global_logger = None
@@ -38,17 +39,29 @@ class Logger:
         return _global_logger
 
     @staticmethod
-    def save_screenshot(driver, test_file_dir, screenshot_name):
-        screenshot_path = os.path.join(test_file_dir, screenshot_name)
-        driver.save_screenshot(screenshot_path)
-        _global_logger.info(f"Screenshot saved at: {screenshot_path}")
+    def save_screenshot(driver):
+        """
+        Зберігає скріншот, використовуючи ім'я тесту та часову мітку.
+        Інформація про каталог і назву тесту береться з globals.
+        """
+        if not globals.test_file_dir or not globals.test_name:
+            _global_logger.error("test_file_dir or test_name is not set in globals.")
+            return
+
+        # Формуємо ім'я скріншота
+        timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        screenshot_name = f"{globals.test_name}_{timestamp}.png"
+        screenshot_path = os.path.join(globals.test_file_dir, screenshot_name)
+
+        _global_logger.info(f"Attempting to save screenshot to: {screenshot_path}")
+        try:
+            driver.save_screenshot(screenshot_path)
+            _global_logger.info(f"Screenshot saved at: {screenshot_path}")
+        except Exception as e:
+            _global_logger.error(f"Failed to save screenshot: {e}")
 
     @staticmethod
     def step(step_number: str, description: str):
-        """
-        Логування кроку тесту у форматі:
-        STEP [номер]: опис
-        """
         if _global_logger:
             msg = f"STEP {step_number}: {description}"
             _global_logger.info(msg)
@@ -57,44 +70,30 @@ class Logger:
 
     @staticmethod
     def checkpoint(msg):
-        """
-
-        """
         if _global_logger:
-            globals.int_total_checkpoints +=1
-            msg = f"CHECKPOINT {str(globals.int_total_checkpoints)}: {msg}"
+            globals.int_total_checkpoints += 1
+            msg = f"CHECKPOINT {globals.int_total_checkpoints}: {msg}"
             _global_logger.info(msg)
         else:
             raise ValueError("Logger is not initialized.")
 
     @staticmethod
-    def error(msg, error_class, **kwargs):
-        """
-
-        """
+    def exception(msg, driver=None):
         if _global_logger:
             _global_logger.error(msg)
-            globals.list_warnings.append(msg)
-            raise error_class
-        else:
-            raise ValueError("Logger is not initialized.")
-
-    @staticmethod
-    def exception(msg):
-        if _global_logger:
-            _global_logger.exception(msg)
             globals.list_exceptions.append(msg)
+
+            # Створюємо скріншот, якщо є драйвер
+            if driver:
+                Logger.save_screenshot(driver)
         else:
             raise ValueError("Logger is not initialized.")
 
     @staticmethod
     def log_test_summary():
-        """
-
-        """
         _global_logger.info("*******************************************************")
         _global_logger.info("**************** TEST SCENARIO SUMMARY ****************")
         _global_logger.info("*******************************************************")
-        _global_logger.info("    TOTAL CHECKPOINTS: " + str(len(globals.list_checkpoints)))
-        _global_logger.info("    TOTAL WARNINGS: " + str(len(globals.list_warnings)))
-        _global_logger.info("    TOTAL EXCEPTIONS: " + str(len(globals.list_exceptions)))
+        _global_logger.info(f"    TOTAL CHECKPOINTS: {len(globals.list_checkpoints)}")
+        _global_logger.info(f"    TOTAL WARNINGS: {len(globals.list_warnings)}")
+        _global_logger.info(f"    TOTAL EXCEPTIONS: {len(globals.list_exceptions)}")

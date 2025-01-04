@@ -34,3 +34,4 @@ def verify_string(actual_str: str, expected_str: str, **kwargs):
         return True
     except Exception as e:
         Logger.exception(f'{e.__class__.__name__}: {fail_msg}')
+        return False

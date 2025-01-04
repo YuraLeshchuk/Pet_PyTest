@@ -5,8 +5,8 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from utils.logger import Logger, initialize_logger
-from utils import read_config
 from utils import globals
+from utils import read_config
 
 # Створення загальної папки для запуску тестів
 RUN_TIMESTAMP = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
@@ -28,17 +28,20 @@ def driver(request):
     driver.base_url = read_config.get_url()
 
     # Отримуємо ім'я тестового файлу
-    test_file_name = os.path.splitext(os.path.basename(request.node.fspath))[0]  # Ім'я без розширення
-    test_name = request.node.name  # Назва тесту
-    timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-
-    # Створюємо папку для тестового файлу всередині test_run
+    test_file_name = os.path.splitext(os.path.basename(request.node.fspath))[0]
+    test_name = request.node.name
     test_file_dir = os.path.join(TEST_RUN_DIR, f"{test_file_name}_{RUN_TIMESTAMP}")
+
+    # Зберігаємо ці дані у globals
+    globals.test_file_dir = test_file_dir
+    globals.test_name = test_name
+
+    # Створюємо папку для тестів, якщо її немає
     if not os.path.exists(test_file_dir):
         os.makedirs(test_file_dir)
 
     # Ініціалізація глобального логера
-    log_file_name = f"{test_name}_{timestamp}.log"  # Лог-файл для конкретного тесту
+    log_file_name = f"{test_name}_{RUN_TIMESTAMP}.log"
     initialize_logger(log_file_name, test_file_dir)
 
     # Логування початку тесту
@@ -53,21 +56,16 @@ def driver(request):
     driver.quit()
 
 
+def pytest_runtest_teardown(item):
+    """Обробка помилок після завершення тесту."""
+    if globals.list_exceptions:
+        pytest.fail(f"Test failed after execution: {item.name}", pytrace=False)
+
 def pytest_runtest_makereport(item, call):
-    """Обробка помилок і збереження скріншотів у разі неуспіху"""
-    if call.excinfo is not None:  # Якщо є помилка в тесті
-        if 'driver' in item.funcargs:
-            logger = Logger.get_global_logger()
-            driver = item.funcargs['driver']
+    """Зберігає скріншоти у разі помилки."""
+    if call.when == "call" and call.excinfo is not None:
+        if str(call.excinfo.value) != f"Test failed after execution: {item.name}":
+            if 'driver' in item.funcargs:
+                driver = item.funcargs['driver']
+                Logger.save_screenshot(driver)
 
-            test_file_name = os.path.splitext(os.path.basename(item.fspath))[0]  # Ім'я тестового файлу
-            test_name = item.name  # Назва тесту
-            timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-
-            # Директорія для скріншотів
-            test_file_dir = os.path.join(TEST_RUN_DIR, f"{test_file_name}_{RUN_TIMESTAMP}")
-            screenshot_name = f"{test_name}_{timestamp}.png"
-
-            # Збереження скріншоту
-            Logger.save_screenshot(driver, test_file_dir, screenshot_name)
-            logger.error(f"Test {item.nodeid} failed with {call.excinfo}")
