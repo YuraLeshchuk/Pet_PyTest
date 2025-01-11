@@ -1,6 +1,9 @@
 import logging
 import os
 from datetime import datetime
+
+import pytest
+
 from utils import globals
 
 _global_logger = None
@@ -78,7 +81,15 @@ class Logger:
             raise ValueError("Logger is not initialized.")
 
     @staticmethod
-    def exception(msg, driver=None):
+    def error(msg, error):
+        if _global_logger:
+            _global_logger.error(msg)
+            raise error
+        else:
+            raise ValueError("Logger is not initialized.")
+
+    @staticmethod
+    def exception(driver=None, msg: str = ""):
         if _global_logger:
             _global_logger.error(msg)
             globals.list_exceptions.append(msg)

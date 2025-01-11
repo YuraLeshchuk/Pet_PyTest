@@ -18,6 +18,16 @@ class BrowsePage:
         element = WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located(locator))
         return element
 
+    def get_elements(self, locator: tuple[str, str], **kwargs):
+        timeout = kwargs.get('timeout', 5)
+        elements = WebDriverWait(self.driver, timeout).until(EC.presence_of_all_elements_located(locator))
+        return elements
+
     def click_btn(self, locator: tuple[str, str], **kwargs):
         btn = self.get_element(locator, **kwargs)
         return btn.click()
+
+    def fill_in_with_value(self, field, value):
+        field = self.get_element(locator=field)
+        field.click()
+        field.send_keys(value)
