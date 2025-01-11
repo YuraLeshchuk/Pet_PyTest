@@ -6,6 +6,7 @@ from utils.logger import Logger
 
 class BrowsePage:
     url = ''
+    loader_xpath = (By.XPATH, "//div[@class='oxd-circle-loader']")
 
     def __init__(self, driver, **kwargs):
         self.driver = driver
@@ -24,10 +25,16 @@ class BrowsePage:
         return elements
 
     def click_btn(self, locator: tuple[str, str], **kwargs):
-        btn = self.get_element(locator, **kwargs)
+        timeout = kwargs.get('timeout', 5)
+        btn = WebDriverWait(self.driver, timeout).until(EC.element_to_be_clickable(locator))
         return btn.click()
 
-    def fill_in_with_value(self, field, value):
-        field = self.get_element(locator=field)
-        field.click()
-        field.send_keys(value)
+    def fill_in_with_value(self, field, value, **kwargs):
+        timeout = kwargs.get('timeout', 10)
+        field_element = self.get_element(field, timeout=timeout)
+        self.click_btn(field, timeout=timeout)
+        field_element.send_keys(value)
+
+    def delay_for_loading(self, **kwargs):
+        timeout = kwargs.get('timeout', 20)
+        WebDriverWait(self.driver, timeout).until(EC.invisibility_of_element_located(self.loader_xpath))

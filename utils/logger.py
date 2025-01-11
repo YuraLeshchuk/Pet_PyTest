@@ -1,9 +1,6 @@
 import logging
 import os
 from datetime import datetime
-
-import pytest
-
 from utils import globals
 
 _global_logger = None

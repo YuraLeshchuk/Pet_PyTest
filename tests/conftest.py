@@ -20,7 +20,8 @@ if not os.path.exists(TEST_RUN_DIR):
 def driver(request):
     """Фікстура для налаштування WebDriver"""
     options = webdriver.ChromeOptions()
-    # options.add_argument("--headless")
+    if read_config.driver_mode() == "true":
+        options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     driver.maximize_window()
