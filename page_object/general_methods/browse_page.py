@@ -1,4 +1,6 @@
+import pyautogui
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from utils.logger import Logger
@@ -6,16 +8,18 @@ from utils.logger import Logger
 
 class BrowsePage:
     url = ''
+
     loader_xpath = (By.XPATH, "//div[@class='oxd-circle-loader']")
 
     def __init__(self, driver, **kwargs):
         self.driver = driver
+        self.web_element = None
 
     def get_page(self):
         self.driver.get(self.driver.base_url + self.url)
 
     def get_element(self, locator: tuple[str, str], **kwargs):
-        timeout = kwargs.get('timeout', 5)
+        timeout = kwargs.get('timeout', 15)
         element = WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located(locator))
         return element
 
@@ -30,7 +34,7 @@ class BrowsePage:
         return btn.click()
 
     def fill_in_with_value(self, field, value, **kwargs):
-        timeout = kwargs.get('timeout', 10)
+        timeout = kwargs.get('timeout', 20)
         field_element = self.get_element(field, timeout=timeout)
         self.click_btn(field, timeout=timeout)
         field_element.send_keys(value)
@@ -38,3 +42,13 @@ class BrowsePage:
     def delay_for_loading(self, **kwargs):
         timeout = kwargs.get('timeout', 20)
         WebDriverWait(self.driver, timeout).until(EC.invisibility_of_element_located(self.loader_xpath))
+
+    def click_and_move_mouse_cursor(self, x, y, **kwargs):
+        button = kwargs.get('button', "left")
+        pyautogui.drag(x, y, 2, button=button)
+
+    def set_mouse_cursor(self, x, y):
+        pyautogui.moveTo(x, y)
+
+    def select(self, element, value):
+        return Select(element).select_by_value(value)

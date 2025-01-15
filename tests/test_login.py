@@ -14,9 +14,3 @@ def test_1(driver):
     Logger.step("03", "Login with default user")
     login_page.login_with_user_credentials("Admin", "SX64ekR@Mn")
     login_page.verify_no_login_error()
-
-
-
-def test_2(driver):
-    Logger.step("2", "fdgre")
-    assert 1 == 3
