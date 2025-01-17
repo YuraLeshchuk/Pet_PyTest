@@ -14,6 +14,8 @@ class LoginPage(BrowsePage):
     user_name_field_xpath = (By.XPATH, "//input[@id='txtUsername']")
     psw_field_xpath = (By.XPATH, "//input[@id='txtPassword']")
     login_error_form = (By.XPATH, "//div[contains(@class, 'toast-error')]")
+    login = "Admin"
+    psw = "aaaaaaaa"
 
     def __init__(self, driver):
         super().__init__(driver)
@@ -34,7 +36,7 @@ class LoginPage(BrowsePage):
     def fill_psw(self, psw: str):
         self.fill_in_with_value(self.psw_field_xpath, psw)
 
-    def login_with_user_credentials(self, user_name: str, psw: str):
+    def login_with_user_credentials(self, user_name = login, psw = psw):
         self.fill_user_name(user_name)
         self.fill_psw(psw)
         self.click_login_btn()

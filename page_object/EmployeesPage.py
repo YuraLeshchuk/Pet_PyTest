@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from page_object.general_methods.browse_page import BrowsePage
 from utils import verify
 from utils import xl_utils
+from utils.logger import Logger
 
 
 class EmployeesPage(BrowsePage):
@@ -36,6 +37,8 @@ class AddEmployeeModal(EmployeesPage):
     location_field_xpath = (By.XPATH, "//div[@id='location']//input")
     photo_frame_xpath = (By.XPATH, "//label[@id='photo-preview-lable']")
     edit_photo_frame_xpath = (By.XPATH, "//img-crop[@id='employeePhotoPreview']//canvas")
+    next_btn_xpath = (By.XPATH, "//button[@id='modal-save-button']")
+    cancel_btn_xpath = (By.XPATH, "//button[@ng-click='vm.cancel()']")
 
     def __init__(self, driver):
         super().__init__(driver)
@@ -59,6 +62,9 @@ class AddEmployeeModal(EmployeesPage):
         self.get_element((By.XPATH, f"//div[@class='custom-dropdown-item-inner-container']"
                                     f"//span[text()='{location}']")).click()
 
+    def click_next_btn(self):
+        self.click_btn(self.next_btn_xpath)
+        Logger.info("Next button clicked")
 
     def load_photo(self, photo_path):
         self.get_element(self.photo_frame_xpath).click()
@@ -83,3 +89,5 @@ class AddEmployeeModal(EmployeesPage):
                 self.enter_joined_date(xl_utils.read_data(file, sheet_name, row_index, i))
             elif xl_utils.read_data(file, sheet_name, 1, i) == "location":
                 self.enter_location(xl_utils.read_data(file, sheet_name, row_index, i))
+
+        self.click_next_btn()

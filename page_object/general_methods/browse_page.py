@@ -38,6 +38,7 @@ class BrowsePage:
         timeout = kwargs.get('timeout', 20)
         field_element = self.get_element(field, timeout=timeout)
         self.click_btn(field, timeout=timeout)
+        field_element.clear()
         field_element.send_keys(value)
 
     def delay_for_loading(self, **kwargs):
@@ -57,6 +58,6 @@ class BrowsePage:
     def load_file(self, file_path, **kwargs):
         timeout = kwargs.get('timeout', 2)
         time.sleep(timeout)
-        path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..")) + file_path
+        path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")) + file_path
         pyautogui.write(path)
         pyautogui.press('enter')

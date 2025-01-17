@@ -1,7 +1,6 @@
 from page_object.LoginPage import LoginPage
 from utils.logger import Logger
 
-
 def test_1(driver):
     login_page = LoginPage(driver)
 
@@ -12,5 +11,5 @@ def test_1(driver):
     login_page.verify_page_title()
 
     Logger.step("03", "Login with default user")
-    login_page.login_with_user_credentials("Admin", "SX64ekR@Mn")
+    login_page.login_with_user_credentials("Admin", "aaaaaaaa")
     login_page.verify_no_login_error()

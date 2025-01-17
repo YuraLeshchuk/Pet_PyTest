@@ -86,6 +86,13 @@ class Logger:
             raise ValueError("Logger is not initialized.")
 
     @staticmethod
+    def info(msg):
+        if _global_logger:
+            _global_logger.info(msg)
+        else:
+            raise ValueError("Logger is not initialized.")
+
+    @staticmethod
     def exception(driver=None, msg: str = ""):
         if _global_logger:
             _global_logger.error(msg)
