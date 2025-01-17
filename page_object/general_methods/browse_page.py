@@ -1,14 +1,15 @@
+import os
+import time
+
 import pyautogui
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from utils.logger import Logger
 
 
 class BrowsePage:
     url = ''
-
     loader_xpath = (By.XPATH, "//div[@class='oxd-circle-loader']")
 
     def __init__(self, driver, **kwargs):
@@ -19,7 +20,7 @@ class BrowsePage:
         self.driver.get(self.driver.base_url + self.url)
 
     def get_element(self, locator: tuple[str, str], **kwargs):
-        timeout = kwargs.get('timeout', 15)
+        timeout = kwargs.get('timeout', 30)
         element = WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located(locator))
         return element
 
@@ -52,3 +53,10 @@ class BrowsePage:
 
     def select(self, element, value):
         return Select(element).select_by_value(value)
+
+    def load_file(self, file_path, **kwargs):
+        timeout = kwargs.get('timeout', 2)
+        time.sleep(timeout)
+        path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..")) + file_path
+        pyautogui.write(path)
+        pyautogui.press('enter')

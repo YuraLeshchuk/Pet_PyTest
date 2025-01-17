@@ -7,11 +7,14 @@ from page_object.EmployeesPage import AddEmployeeModal
 from utils.logger import Logger
 
 
-def test_1(driver):
-    browse = BrowsePage(driver)
+
+def test_1_create_user(driver):
     login_page = LoginPage(driver)
     employees_page = EmployeesPage(driver)
     add_employee_modal = AddEmployeeModal(driver)
+
+    photo_path = r"\test_data\duck.jpg"
+    file_path = r'\test_data\users.xlsx'
 
     Logger.step("01", "Open Login Page")
     login_page.load()
@@ -23,8 +26,7 @@ def test_1(driver):
     Logger.step("03", "Open Employee Page")
     employees_page.load()
     add_employee_modal.click_add_employee_btn()
-    add_employee_modal.load_photo(r"\test_data\duck.jpg")
-    browse.set_mouse_cursor(625, 390)
-    browse.click_and_move_mouse_cursor(0, -40)
-    file = r'C:\Users\yura7\Desktop\Pet_PyTest\test_data\users.xlsx'
-    add_employee_modal.create_user_from_xl(file, "users", 1)
+    add_employee_modal.load_photo(photo_path)
+    add_employee_modal.crop_photo(0, -40)
+
+    add_employee_modal.create_user_from_xl(file_path, "users", 1)
